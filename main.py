@@ -4,7 +4,6 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, HttpUrl, Field
 from playwright.async_api import async_playwright
 
@@ -15,7 +14,7 @@ SCREENSHOTS_DIR.mkdir(exist_ok=True)
 
 
 class ScreenshotRequest(BaseModel):
-    url: HttpUrl
+    url: HttpUrl  # HttpUrl validates scheme is http or https
     width: int = Field(default=1280, ge=320, le=3840)
     height: int = Field(default=720, ge=200, le=2160)
 

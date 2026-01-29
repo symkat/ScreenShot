@@ -6,6 +6,7 @@ A simple web service that captures screenshots of any webpage via API. Built wit
 
 - REST API for capturing webpage screenshots
 - Configurable viewport dimensions (default: 1280x720)
+- Automatic cleanup of screenshots after 30 minutes
 - Web interface for interactive testing
 - Runs as a managed service on Sprite
 
@@ -102,6 +103,8 @@ curl http://localhost:8080/screenshots/abc123.png --output screenshot.png
 ```
 
 **Response:** PNG image file
+
+**Note:** Screenshots are automatically deleted after 30 minutes.
 
 ## Web Interface
 

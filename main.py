@@ -1,16 +1,42 @@
-import os
+import asyncio
 import uuid
+from datetime import datetime, timedelta
 from pathlib import Path
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, HttpUrl, Field
 from playwright.async_api import async_playwright
 
-app = FastAPI(title="Screenshot Service")
-
 SCREENSHOTS_DIR = Path(__file__).parent / "screenshots"
 SCREENSHOTS_DIR.mkdir(exist_ok=True)
+
+SCREENSHOT_MAX_AGE_MINUTES = 30
+
+
+async def cleanup_old_screenshots():
+    """Background task that deletes screenshots older than SCREENSHOT_MAX_AGE_MINUTES."""
+    while True:
+        await asyncio.sleep(60)  # Check every minute
+        cutoff = datetime.now() - timedelta(minutes=SCREENSHOT_MAX_AGE_MINUTES)
+        for file in SCREENSHOTS_DIR.glob("*.png"):
+            try:
+                if datetime.fromtimestamp(file.stat().st_mtime) < cutoff:
+                    file.unlink()
+            except OSError:
+                pass  # File may have been deleted already
+
+
+@asynccontextmanager
+async def lifespan(app):
+    """Start background cleanup task on startup."""
+    task = asyncio.create_task(cleanup_old_screenshots())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="Screenshot Service", lifespan=lifespan)
 
 
 class ScreenshotRequest(BaseModel):
@@ -166,6 +192,7 @@ Content-Type: application/json
 }</code></pre>
 
         <p>The returned <code>screenshot_url</code> can be accessed directly to view or download the image.</p>
+        <p><strong>Note:</strong> Screenshots are automatically deleted after 30 minutes.</p>
     </div>
 
     <div class="card">

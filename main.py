@@ -131,6 +131,16 @@ Content-Type: application/json
         <p>The returned <code>screenshot_url</code> can be accessed directly to view or download the image.</p>
     </div>
 
+    <div class="card">
+        <h2>Authentication</h2>
+        <p>If your Sprite is configured with <strong>authenticated access</strong>, include your Sprite token in the request header:</p>
+        <pre><code>curl -X POST https://your-sprite.spriteos.dev/screenshot \\
+  -H "Authorization: Bearer $SPRITE" \\
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://example.com"}'</code></pre>
+        <p>If your Sprite is <strong>public</strong>, no authorization header is needed.</p>
+    </div>
+
     <script>
         const form = document.getElementById('screenshot-form');
         const urlInput = document.getElementById('url');

@@ -25,6 +25,16 @@ This will:
 
 The service will be available at `http://localhost:8080`.
 
+## Authentication
+
+When accessing your Sprite via its authenticated URL, you must include an authorization header with your Sprite token:
+
+```bash
+-H "Authorization: Bearer $SPRITE"
+```
+
+If your Sprite is configured with public access, no authentication header is required.
+
 ## API Reference
 
 ### Take Screenshot
@@ -44,10 +54,19 @@ Content-Type: application/json
 }
 ```
 
-**Example:**
+**Example (public Sprite):**
 
 ```bash
 curl -X POST http://localhost:8080/screenshot \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+**Example (authenticated Sprite):**
+
+```bash
+curl -X POST https://your-sprite.spriteos.dev/screenshot \
+  -H "Authorization: Bearer $SPRITE" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
 ```

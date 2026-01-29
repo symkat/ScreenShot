@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
 
-echo "Installing Screenshot Service dependencies..."
+echo "Installing Screenshot Service..."
+
+# Clone the repository
+echo "Cloning repository..."
+git clone https://github.com/symkat/ScreenShot.git /home/sprite/ScreenShot
+cd /home/sprite/ScreenShot
 
 # Install Python packages
 echo "Installing Python packages..."
@@ -16,9 +21,12 @@ echo "Installing Playwright Chromium browser..."
 python -m playwright install chromium
 
 echo ""
+echo "Registering Screenshot Service..."
+sprite-env services create screenshot \
+    --cmd python \
+    --args /home/sprite/ScreenShot/main.py \
+    --http-port 8080
+
+echo ""
 echo "Installation complete!"
-echo ""
-echo "To start the server, run:"
-echo "  python main.py"
-echo ""
-echo "The server will be available at http://localhost:8080"
+echo "The screenshot service is now running and available at http://localhost:8080"

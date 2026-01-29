@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 from playwright.async_api import async_playwright
 
 app = FastAPI(title="Screenshot Service")
@@ -16,6 +16,8 @@ SCREENSHOTS_DIR.mkdir(exist_ok=True)
 
 class ScreenshotRequest(BaseModel):
     url: HttpUrl
+    width: int = Field(default=1280, ge=320, le=3840)
+    height: int = Field(default=720, ge=200, le=2160)
 
 
 class ScreenshotResponse(BaseModel):
@@ -67,9 +69,24 @@ async def homepage():
             border-radius: 4px;
             font-size: 1rem;
         }
-        input[type="url"]:focus {
+        input[type="url"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: #3498db;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .inline-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .inline-group .form-group {
+            margin-bottom: 0;
         }
         button {
             background: #3498db;
@@ -103,6 +120,18 @@ async def homepage():
                 <label for="url">Enter a URL to capture:</label>
                 <input type="url" id="url" name="url" placeholder="https://example.com" required>
             </div>
+            <div class="form-group">
+                <label>Viewport size:</label>
+                <div class="inline-group">
+                    <div class="form-group">
+                        <input type="number" id="width" name="width" value="1280" min="320" max="3840">
+                    </div>
+                    <span>x</span>
+                    <div class="form-group">
+                        <input type="number" id="height" name="height" value="720" min="200" max="2160">
+                    </div>
+                </div>
+            </div>
             <button type="submit" id="submit-btn">Take Screenshot</button>
         </form>
         <div id="result"></div>
@@ -110,18 +139,27 @@ async def homepage():
 
     <div class="card">
         <h2>API Usage</h2>
-        <p>Send a POST request to <code>/screenshot</code> with a JSON body containing the URL:</p>
+        <p>Send a POST request to <code>/screenshot</code> with a JSON body containing the URL and optional viewport dimensions:</p>
         <pre><code>curl -X POST http://localhost:8080/screenshot \\
   -H "Content-Type: application/json" \\
-  -d '{"url": "https://example.com"}'</code></pre>
+  -d '{"url": "https://example.com", "width": 1280, "height": 720}'</code></pre>
 
         <h3>Request</h3>
         <pre><code>POST /screenshot
 Content-Type: application/json
 
 {
-  "url": "https://example.com"
+  "url": "https://example.com",
+  "width": 1280,
+  "height": 720
 }</code></pre>
+
+        <h3>Parameters</h3>
+        <ul>
+            <li><code>url</code> (required) - The webpage URL to capture</li>
+            <li><code>width</code> (optional) - Viewport width in pixels (320-3840, default: 1280)</li>
+            <li><code>height</code> (optional) - Viewport height in pixels (200-2160, default: 720)</li>
+        </ul>
 
         <h3>Response</h3>
         <pre><code>{
@@ -144,6 +182,8 @@ Content-Type: application/json
     <script>
         const form = document.getElementById('screenshot-form');
         const urlInput = document.getElementById('url');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
         const submitBtn = document.getElementById('submit-btn');
         const result = document.getElementById('result');
 
@@ -159,7 +199,11 @@ Content-Type: application/json
                 const response = await fetch('/screenshot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: urlInput.value })
+                    body: JSON.stringify({
+                        url: urlInput.value,
+                        width: parseInt(widthInput.value),
+                        height: parseInt(heightInput.value)
+                    })
                 });
 
                 const data = await response.json();
@@ -197,7 +241,7 @@ async def take_screenshot(request: ScreenshotRequest):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page(viewport={"width": 1280, "height": 720})
+            page = await browser.new_page(viewport={"width": request.width, "height": request.height})
             await page.goto(str(request.url), timeout=30000)
             await page.screenshot(path=str(filepath))
             await browser.close()

@@ -5,7 +5,7 @@ A simple web service that captures screenshots of any webpage via API. Built wit
 ## Features
 
 - REST API for capturing webpage screenshots
-- Returns PNG images at 1280x720 resolution
+- Configurable viewport dimensions (default: 1280x720)
 - Web interface for interactive testing
 - Runs as a managed service on Sprite
 
@@ -43,6 +43,14 @@ Capture a screenshot of a webpage.
 
 **Endpoint:** `POST /screenshot`
 
+**Parameters:**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `url` | string | Yes | - | The webpage URL to capture |
+| `width` | integer | No | 1280 | Viewport width (320-3840) |
+| `height` | integer | No | 720 | Viewport height (200-2160) |
+
 **Request:**
 
 ```http
@@ -50,7 +58,9 @@ POST /screenshot
 Content-Type: application/json
 
 {
-  "url": "https://example.com"
+  "url": "https://example.com",
+  "width": 1280,
+  "height": 720
 }
 ```
 
@@ -59,7 +69,7 @@ Content-Type: application/json
 ```bash
 curl -X POST http://localhost:8080/screenshot \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://example.com", "width": 1920, "height": 1080}'
 ```
 
 **Example (authenticated Sprite):**
@@ -68,7 +78,7 @@ curl -X POST http://localhost:8080/screenshot \
 curl -X POST https://your-sprite.spriteos.dev/screenshot \
   -H "Authorization: Bearer $SPRITE" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://example.com", "width": 1920, "height": 1080}'
 ```
 
 **Response:**

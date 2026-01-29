@@ -2,6 +2,9 @@
 
 A simple web service that captures screenshots of any webpage via API. Built with FastAPI and Playwright.
 
+<img width="1280" height="720" alt="ScreenShot HomePage" src="https://github.com/user-attachments/assets/326e4780-e0e2-4bc3-8577-fa56521171ab" />
+
+
 ## Features
 
 - REST API for capturing webpage screenshots
